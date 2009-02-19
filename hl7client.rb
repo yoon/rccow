@@ -24,27 +24,35 @@ sock = TCPSocket.open("localhost",1234)    # Socket to listen on port 1234
 #     break
 #   end
 # end
+message_hashes = [  {:recv_app => "ruby hl7", :recv_facility => "my office", :processing_id => rand(10000).to_s},
+                    {:recv_app => "ruby hl7 other", :recv_facility => "my office", :processing_id => rand(10000).to_s},
+                    {:recv_app => "ruby hl7 ccow", :recv_facility => "your office", :processing_id => rand(10000).to_s}]
+messages = []
 
-# create a message
-msg = HL7::Message.new
-msg2 = HL7::Message.new
+message_hashes.each do |hash|
+  msg = HL7::Message.new
+  msh = HL7::Message::Segment::MSH.new
+  hash.each do |k,v|
+    msh.send("#{k}=", v)
+  end
+  msg << msh
+  messages << msg
+end
+puts messages
 
-# create a MSH segment for our new message
-msh = HL7::Message::Segment::MSH.new
-msh.recv_app = "ruby hl7"
-msh.recv_facility = "my office"
-msh.processing_id = rand(10000).to_s
-msg << msh # add the MSH segment to the message
+# # create a message
+# msg = HL7::Message.new
+# 
+# # create a MSH segment for our new message
+# msh = HL7::Message::Segment::MSH.new
+# msh.recv_app = "ruby hl7"
+# msh.recv_facility = "my office"
+# msh.processing_id = rand(10000).to_s
+# msg << msh # add the MSH segment to the message
 
-msh2 = HL7::Message::Segment::MSH.new
-msh2.recv_app = "ruby hl7 ccow"
-msh2.recv_facility = "your office"
-msh2.processing_id = rand(10000).to_s
-msg2 << msh2 # add the MSH segment to the message
-
-sock.puts(msg, msg2)
-
-# sock.send(msg)
+sock.puts(messages)
+sock.flush
+sock.close
 
 # puts msg.to_s # readable version of the message
 # 
